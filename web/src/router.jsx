@@ -10,6 +10,7 @@ import Fun from "./Pages/Fun";
 import Info from "./Pages/Info";
 import Chat from "./Pages/Chat";
 import Venues from "./Pages/Venues";
+import AdminView from "./Pages/AdminView";
 
 export const router = createBrowserRouter([
   {
@@ -25,6 +26,8 @@ export const router = createBrowserRouter([
       { path: "/fun", element: <Fun /> },
       { path: "/chat", element: <Chat /> },
       { path: "/venues", element: <Venues /> },
+      { path: "/adminview", element: <AdminView /> },
+
     ],
   },
 ]);

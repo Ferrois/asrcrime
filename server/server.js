@@ -25,6 +25,56 @@ io_main.on("connection", (socket) => {
   console.log("Socket Connected: " + socket.id);
 
   socket.on("login", async (data) => {
+    // await GroupSchema.create({
+    //   group: "7",
+    //   passcode: "CPU64",
+    //   games: {
+    //     "1": {  score: 0 },
+    //     "2": {  score: 0 },
+    //     "3": {  score: 0 },
+    //     "4": {  score: 0 },
+    //     "5": {  score: 0 },
+    //     "6": {  score: 0 },
+    //     "7": {  score: 0 },
+    //   },
+    //   clues: [
+    //     {
+    //       disc: "Wow! He/She won something at SSEF...",
+    //       tf: "true",
+    //       score: 10,
+    //     },
+    //     {
+    //       disc: "All of them couldve used Chinese to converse with one another",
+    //       tf: "false",
+    //       score: 25,
+    //     },
+    //     {
+    //       disc: "Wait... Ive seen him on @asr.stem!",
+    //       tf: "true",
+    //       score: 40
+    //     },
+    //     {
+    //       disc: "Atleast one of the culprits retained for a year in JC",
+    //       tf: "false",
+    //       score: 55
+    //     },
+    //     {
+    //       disc: "He/She is the Head of something...",
+    //       tf: "true",
+    //       score: 75
+    //     },
+    //     {
+    //       disc: "One of the culprits is a 4H2 student!",
+    //       tf: "false",
+    //       score : 100
+    //     },
+    //     {
+    //       disc: "2 of them are either Exco or Head",
+    //       tf: "false",
+    //       score: 125
+    //     }
+    //   ]
+    // })
     try {
       const selectedGroup = await GroupSchema.findOne({ passcode: data.payload });
       if (!selectedGroup) return socket.emit("alert", { message: "Wrong Passcode!", type: "error" });
@@ -68,6 +118,7 @@ io_main.on("connection", (socket) => {
   });
 
   socket.on("admin-request", async ({ payload, token }) => {
+    console.log(token, "fa");
     try {
       const selectedGame = await GameSchema.findOne({ passcode: token });
       // console.log(selectedGame)
@@ -132,11 +183,10 @@ io_main.on("connection", (socket) => {
 
   socket.on("joinchat", async ({ payload, token }) => {
     try {
-
       socket.join("chat");
       const chats = await ChatSchema.find().limit(50);
       socket.emit("updatechat", chats);
-    }catch {
+    } catch {
       socket.emit("alert", { message: "Unable to join chat! Internal Server Error 500", type: "error" });
     }
   });
@@ -153,6 +203,18 @@ io_main.on("connection", (socket) => {
   });
   socket.on("leavechat", async ({ payload, token }) => {
     socket.leave("chat");
+  });
+
+  socket.on("adminview-request", async ({ payload, token }) => {
+    const teams = await GroupSchema.find();
+    const response = [];
+    for (let i = 0; i < teams.length; i++) {
+      const team = teams[i];
+      const { group, games } = team;
+      const totalScore = Object.values(games).reduce((a, b) => parseInt(a) + parseInt(b.score), 0);
+      response.push({ group, games, totalScore });
+    }
+    socket.emit("adminview-response", response);
   });
 });
 

@@ -4,6 +4,7 @@ import { io } from "socket.io-client";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import useLocalStorage from "../Hooks/useLocalStorage";
+import { useColorMode } from "@chakra-ui/react";
 
 const Context = createContext(null);
 
@@ -27,6 +28,8 @@ export function AuthProvider({ children }) {
   const [adminTeams, setAdminTeams] = useState([]);
   const [gamename, setGameName] = useState(null);
   const [gamenumber, setGameNumber] = useState(null);
+  const [adminview, setAdminview] = useState([]);
+
 
   const socketRef = useRef(null);
   useEffect(() => {
@@ -59,7 +62,7 @@ export function AuthProvider({ children }) {
       toast(data.message, { type: data.type || "success" });
     });
     socket.on("relay", (data) => {
-      emit(data);
+      socketRef.current?.emit(data, { token });
     });
     socket.on("updatescore", (data) => {
       setScore(data);
@@ -73,6 +76,9 @@ export function AuthProvider({ children }) {
     socket.on("incomingchat", (data) => {
       setChat((prev) => [...prev, data]);
     });
+    socket.on("adminview-response", (data) => {
+      setAdminview(data);
+    });
     return () => {
       socket.removeAllListeners();
       socket.close();
@@ -83,7 +89,7 @@ export function AuthProvider({ children }) {
     if (token != null && pathname == "/") {
       socketRef.current?.emit("login", { payload: token });
     }
-    if (token == null && (pathname != "/" && pathname != "/admin")){
+    if (token == null && (pathname != "/" && pathname != "/admin" && pathname != "/adminview")){
       navigate("/")
     }
   },[]);
@@ -101,5 +107,5 @@ export function AuthProvider({ children }) {
       socketRef.current?.emit(endpoint, { payload, token });
     }
   };
-  return <Context.Provider value={{ chat, score, emit, logout, adminTeams, gamename, group,clues, token }}>{children}</Context.Provider>;
+  return <Context.Provider value={{ adminview, chat, score, emit, logout, adminTeams, gamename, group,clues, token }}>{children}</Context.Provider>;
 }
